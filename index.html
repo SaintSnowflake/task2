@@ -1,0 +1,87 @@
+﻿<html>
+  <head>
+    <script src="js/vis.js"></script>
+    <link href="css/vis.css" rel="stylesheet" type="text/css"/>
+  	<link href="css/main.css" rel="stylesheet" type="text/css"/>
+  </head>
+  <body>
+    <div class="table">
+    <table cellspacing="0">
+      <thead>
+        <tr>
+          <th>Время</th>
+          <th>Температура</th>
+          <th>Влажность</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    </div>
+    <div class="info">
+    	<div id="currentValues"></div>
+    	<div id="averageValues"></div>
+    </div>
+    <div id="graphic"></div>
+    <script type="text/javascript">
+      var container = document.getElementById('graphic');
+      var currentContainer = document.getElementById('currentValues');
+      var averageContainer = document.getElementById('averageValues');
+      var table = document.getElementsByTagName('tbody')[0];
+      var items = [];
+      var rowsQueue = [];
+      
+      var groups = new vis.DataSet();
+      groups.add({id: 0, options: {drawPoints: {style: 'circle'}}});
+      groups.add({id: 1, options: {drawPoints: {style: 'circle'}}});
+      
+     	var webSocket = new WebSocket('wss://roboforge.ru/wsdata');
+     	webSocket.onmessage = function (event) {
+        container.innerText = "";
+        var jsonData = JSON.parse(event.data);
+        var data = [jsonData.utime, jsonData.temperature, jsonData.humidity];
+        var date = new Date(data[0] * 1000);
+        data[0] = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate() +
+                ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+        data[1] =  Math.ceil(data[1]);
+        data[2] =  Math.ceil(data[2]);
+        
+        var row = document.createElement('tr');
+        rowsQueue.push(row);
+        for (var i = 0; i < data.length; i++) {
+          var column = document.createElement('td');
+          column.innerText = data[i];
+          row.appendChild(column);
+    		}
+        table.appendChild(row);
+        
+        if (rowsQueue.length > 10) {
+          table.removeChild(rowsQueue.shift());
+        }
+        
+        var temperatureSum = 0, humiditySum = 0;
+        for (var i = 0; i < rowsQueue.length; i++) {
+          temperatureSum += parseInt(rowsQueue[i].cells[1].innerText);
+          humiditySum += parseInt(rowsQueue[i].cells[2].innerText);
+        }
+        currentContainer.innerHTML = "<h3>Текущие показатели</h3>Температура: " + Math.ceil(data[1]) + "<br>" +
+          "Влажность: " + Math.ceil(data[2]);
+        averageContainer.innerHTML = "<h3>Средние показатели</h3>Температура: " + Math.ceil(temperatureSum / 10) +
+        	"<br>Влажность: " + Math.ceil(humiditySum / 10);
+        
+        items.push({x: data[0], y: data[1], group: 0});
+        items.push({x: data[0], y: data[2], group: 1});
+        if (items.length > 240) {
+          items.shift();
+          items.shift();
+        }
+        console.log(items.length);
+        var options = {
+          start: items[0].x,
+          end: data[0]
+        };
+        var graph2d = new vis.Graph2d(container, items, groups, options);
+      }
+    </script>
+  </body>
+</ht

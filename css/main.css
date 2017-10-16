@@ -1,0 +1,34 @@
+﻿body {
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: #333333;
+}
+
+table tr th,
+table tr td {
+    padding: 3px.5em;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #dfdfdf;
+}
+
+table tbody tr:nth-child(2n + 1) {
+    background-color: #ffebeb;
+}
+
+.table {  
+  float: left;
+}
+
+.info {
+  height: 272px;
+  width: calc(100% - 350px);
+  margin-left: 350px;
+  padding:0 0 0 .5em;
+  box-sizing: border-box;
+}
+
+#graphic {
+  clear: left;
+  height: 455px;
